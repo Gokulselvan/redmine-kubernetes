@@ -1,0 +1,70 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+ annotations:
+   kompose.cmd: kompose convert
+   kompose.version: 1.20.0 (f3d54d784)
+  labels:
+   io.kompose.service: redmine3
+ name: redmine3
+spec:
+ replicas: 1
+ strategy:
+   type: Recreate
+ template:
+   metadata:
+     annotations:
+       kompose.cmd: kompose convert
+       kompose.version: 1.20.0 (f3d54d784)
+    
+     labels:
+       io.kompose.service: redmine3
+   spec:
+     containers:
+     - env:
+       - name: REDMINE_DB_MYSQL
+         value: mariadb-1-mariadb
+       - name: REDMINE_DB_USERNAME
+         value: <redmine user>
+       - name: REDMINE_DB_PASSWORD
+         value: <DB Password>
+       - name: REDMINE_DB_DATABASE
+         value: <DB name>
+       - name: REDMINE_SECRET_KEY_BASE
+         value: <random key --make sure it is minimum of 24 characters>
+       - name: REDMINE_NO_DB_MIGRATE
+         value: "1"
+       image: redmine:4.1.1-alpine
+       name: redmine3
+       ports:
+       - containerPort: 3000
+       resources:
+         requests:
+           memory: "64Mi"
+           cpu: "150m"
+         limits:
+           memory: "328Mi"
+           cpu: "250m"
+       readinessProbe:
+         httpGet:
+           path: /account/register
+           port: 3000
+         initialDelaySeconds: 60
+         timeoutSeconds: 15
+         periodSeconds: 15
+       livenessProbe:
+         httpGet:
+           path: /account/register
+           port: 3000
+           scheme: HTTP
+         initialDelaySeconds: 60
+         timeoutSeconds: 15
+       volumeMounts:
+       - mountPath: /usr/src/redmine/files
+         name: redmine-persistent-storage
+     restartPolicy: Always
+     volumes:
+     - name: redmine-persistent-storage
+       persistentVolumeClaim:
+         claimName: nfs
+status: {}
