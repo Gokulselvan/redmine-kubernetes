@@ -1,0 +1,15 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+ name: redmine-ingress
+ annotations:
+   kubernetes.io/ingress.global-static-ip-name: redmine2
+   networking.gke.io/managed-certificates: redmine-cert
+spec:
+ rules:
+ - http:
+     paths:
+     - path: /*
+       backend:
+         serviceName: redmine3
+         servicePort: redmine3
